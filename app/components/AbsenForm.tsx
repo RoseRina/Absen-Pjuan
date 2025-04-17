@@ -302,8 +302,9 @@ export default function AbsenForm() {
               onChange={(e) => {
                 const value = e.target.value;
                 setWhatsappNumber(value);
-                // Cek nomor WhatsApp setelah pengguna selesai mengetik
+                // Nonaktifkan tombol jika nomor cukup panjang untuk divalidasi
                 if (value.length >= 10) {
+                  setIsCheckingWhatsapp(true);
                   const timeoutId = setTimeout(() => checkWhatsappNumber(value), 500);
                   return () => clearTimeout(timeoutId);
                 }
