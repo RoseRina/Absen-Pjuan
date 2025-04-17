@@ -60,12 +60,14 @@ export default function AbsenForm() {
           type: 'warning',
           text: data.message
         });
+        setExistingAbsensi('');
         setIsDisabled(true);
         return;
       }
       
       if (data.exists) {
         setExistingAbsensi(data.message);
+        setMessage(null);
         setIsDisabled(true);
       } else {
         setExistingAbsensi('');
@@ -95,17 +97,17 @@ export default function AbsenForm() {
           type: 'warning',
           text: data.message
         });
+        setExistingAbsensi('');
         setIsDisabled(true);
         return;
       }
       
       if (data.exists) {
-        setMessage({
-          type: 'warning',
-          text: data.message
-        });
+        setExistingAbsensi(data.message);
+        setMessage(null);
       } else if (!absensiClosed) {
         setMessage(null);
+        setExistingAbsensi('');
       }
     } catch (error) {
       console.error('Error checking WhatsApp:', error);
