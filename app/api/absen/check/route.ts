@@ -57,13 +57,14 @@ export async function GET(req: Request) {
 
     if (absensi) {
       console.log('Check - Data absensi ditemukan:', absensi);
-      const absensiDate = new Date(absensi.created_at).toLocaleDateString('id-ID', {
+      const absensiDate = new Date(absensi.created_at).toLocaleString('id-ID', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Jakarta'
       });
 
       return NextResponse.json({

@@ -11,6 +11,7 @@ export default function AbsenForm() {
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [isCheckingWhatsapp, setIsCheckingWhatsapp] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export default function AbsenForm() {
       checkExistingAbsensi(whatsappNumber);
     } else {
       setExistingAbsensi('');
+      setIsDisabled(false);
     }
   }, [whatsappNumber]);
 
@@ -27,21 +29,16 @@ export default function AbsenForm() {
       const data = await response.json();
       
       if (data.exists) {
-        const absensiDate = new Date(data.absensi.created_at).toLocaleDateString('id-ID', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-        setExistingAbsensi(
-          `Nomor Anda sudah absen pada ${absensiDate}, cukup sekali absen saja.`
-        );
+        setExistingAbsensi(data.message);
+        setIsDisabled(true);
       } else {
         setExistingAbsensi('');
+        setIsDisabled(false);
       }
     } catch (error) {
       console.error('Error checking existing absensi:', error);
       setExistingAbsensi('');
+      setIsDisabled(false);
     }
   };
 
@@ -261,7 +258,7 @@ export default function AbsenForm() {
 
         <button
           type="submit"
-          disabled={isLoading || existingAbsensi !== ''}
+          disabled={isLoading || isDisabled}
           className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
