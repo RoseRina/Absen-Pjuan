@@ -5,26 +5,26 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header/Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 pb-32">
+      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 py-10 sm:py-16">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 mix-blend-multiply" />
         </div>
-        <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-center md:justify-start">
-            <div className="bg-white rounded-full p-2 mb-6 md:mb-0 md:mr-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 bg-white rounded-full p-3 shadow-md mr-6">
               <img
                 src="/logo-pejuang-cuan.svg" 
                 alt="Logo Pejuang Cuan" 
-                width={100} 
-                height={100} 
+                width={80} 
+                height={80} 
                 className="rounded-full"
               />
             </div>
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl text-center md:text-left">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
                 Sistem Absensi Pejuang Cuan
               </h1>
-              <p className="mt-6 max-w-3xl text-xl text-blue-100">
+              <p className="mt-2 text-lg text-blue-100">
                 Platform absensi digital untuk anggota komunitas Pejuang Cuan.
               </p>
             </div>
@@ -33,7 +33,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="relative -mt-32 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-16 mb-16">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Decorative Top Bar */}
           <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
