@@ -1,12 +1,46 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function AbsenForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [existingAbsensi, setExistingAbsensi] = useState<string>('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (whatsappNumber && whatsappNumber.length >= 10) {
+      checkExistingAbsensi(whatsappNumber);
+    } else {
+      setExistingAbsensi('');
+    }
+  }, [whatsappNumber]);
+
+  const checkExistingAbsensi = async (number: string) => {
+    try {
+      const response = await fetch(`/api/absen/check?whatsapp=${number}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        const absensiDate = new Date(data.absensi.created_at).toLocaleDateString('id-ID', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        setExistingAbsensi(
+          `Nomor Anda sudah absen pada ${absensiDate}, cukup sekali absen saja.`
+        );
+      } else {
+        setExistingAbsensi('');
+      }
+    } catch (error) {
+      console.error('Error checking existing absensi:', error);
+      setExistingAbsensi('');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,6 +74,7 @@ export default function AbsenForm() {
       if (formRef.current) {
         formRef.current.reset();
       }
+      setWhatsappNumber('');
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -78,6 +113,22 @@ export default function AbsenForm() {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
               <p className="mt-1 text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {existingAbsensi && (
+        <div className="mb-6 bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">Perhatian</h3>
+              <p className="mt-1 text-sm text-yellow-700">{existingAbsensi}</p>
             </div>
           </div>
         </div>
@@ -124,6 +175,8 @@ export default function AbsenForm() {
                 id="whatsapp"
                 name="whatsapp"
                 required
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
                 className="appearance-none block w-full pl-20 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 placeholder="8xxxxxxxxxx"
                 pattern="8[0-9]{8,11}"
@@ -155,6 +208,7 @@ export default function AbsenForm() {
                 <option value="" disabled>Pilih grup Anda</option>
                 <option value="[1] Pejuang Cuan">[1] Pejuang Cuan</option>
                 <option value="[2] Pejuang Cuan">[2] Pejuang Cuan</option>
+                <option value="Keduanya saya join">Keduanya saya join</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -167,7 +221,7 @@ export default function AbsenForm() {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || existingAbsensi !== ''}
           className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
