@@ -24,9 +24,11 @@ export default function DashboardPage() {
   const [deleteMessage, setDeleteMessage] = useState('');
   const [selectedGrup, setSelectedGrup] = useState<string>('all');
   const [copySuccessGrup, setCopySuccessGrup] = useState<string | null>(null);
-  const [absenStatus, setAbsenStatus] = useState<{isOpen: boolean, updatedAt: string}|null>(null);
+  const [absenStatus, setAbsenStatus] = useState<{isOpen: boolean, message?: string, updatedAt: string}|null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
+  const [showCustomMessageForm, setShowCustomMessageForm] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -74,8 +76,11 @@ export default function DashboardPage() {
         
         setAbsenStatus({
           isOpen: data.status.isOpen,
+          message: data.status.message,
           updatedAt: formattedDate
         });
+        
+        setCustomMessage(data.status.message || '');
       }
     } catch (error) {
       console.error('Error fetching absen status:', error);
@@ -96,7 +101,10 @@ export default function DashboardPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ isOpen: newStatus }),
+        body: JSON.stringify({ 
+          isOpen: newStatus,
+          message: customMessage 
+        }),
       });
       
       const result = await response.json();
@@ -113,6 +121,7 @@ export default function DashboardPage() {
         
         setAbsenStatus({
           isOpen: newStatus,
+          message: customMessage,
           updatedAt: formattedDate
         });
         
@@ -306,36 +315,73 @@ export default function DashboardPage() {
               )}
             </div>
             
-            <button
-              onClick={toggleAbsenStatus}
-              disabled={statusLoading}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all ${
-                absenStatus?.isOpen
-                  ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                  : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-              }`}
-            >
-              {statusLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Menyimpan...
-                </>
-              ) : absenStatus?.isOpen ? (
-                'Tutup Absensi'
-              ) : (
-                'Buka Absensi'
-              )}
-            </button>
+            <div className="flex flex-col space-y-2">
+              <button
+                onClick={() => setShowCustomMessageForm(!showCustomMessageForm)}
+                className="text-sm text-blue-600 hover:text-blue-800 mb-2"
+              >
+                {showCustomMessageForm ? 'Sembunyikan pesan' : 'Kustomisasi pesan'}
+              </button>
+              
+              <button
+                onClick={toggleAbsenStatus}
+                disabled={statusLoading}
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all ${
+                  absenStatus?.isOpen
+                    ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                    : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                }`}
+              >
+                {statusLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Menyimpan...
+                  </>
+                ) : absenStatus?.isOpen ? (
+                  'Tutup Absensi'
+                ) : (
+                  'Buka Absensi'
+                )}
+              </button>
+            </div>
           </div>
+          
+          {showCustomMessageForm && (
+            <div className="mt-4 border-t pt-4">
+              <label htmlFor="customMessage" className="block text-sm font-medium text-gray-700 mb-2">
+                Pesan saat absensi ditutup:
+              </label>
+              <textarea
+                id="customMessage"
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                rows={3}
+                placeholder="Masukkan pesan yang akan ditampilkan ketika absensi ditutup"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Pesan ini akan ditampilkan kepada pengguna saat mencoba melakukan absensi ketika absensi ditutup.
+              </p>
+            </div>
+          )}
           
           {statusMessage && (
             <div className={`mt-4 text-sm ${
               statusMessage.includes('Error') ? 'text-red-600' : 'text-green-600'
             }`}>
               {statusMessage}
+            </div>
+          )}
+          
+          {absenStatus && !absenStatus.isOpen && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700 mb-1">Pesan yang ditampilkan kepada pengguna:</h3>
+              <p className="text-sm text-gray-600">
+                "{absenStatus.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'}"
+              </p>
             </div>
           )}
         </div>

@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       console.log('Absen - Absensi ditutup');
       return NextResponse.json(
         { 
-          error: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.',
+          error: statusDoc.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.',
           absensiClosed: true 
         },
         { status: 403 }

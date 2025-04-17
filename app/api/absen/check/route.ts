@@ -53,7 +53,7 @@ export async function GET(req: Request) {
       return NextResponse.json({
         exists: false,
         absensiClosed: true,
-        message: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
+        message: statusDoc.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
       });
     }
 

@@ -31,6 +31,7 @@ export async function GET() {
     const status = await db.collection(collectionName).findOne({ type: 'absensi' }) || { 
       type: 'absensi', 
       isOpen: false,
+      message: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.',
       updatedAt: new Date()
     };
     
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Status - Menerima update status:', body);
     
-    const { isOpen } = body;
+    const { isOpen, message } = body;
     
     if (isOpen === undefined) {
       return NextResponse.json(
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
     const updatedStatus = {
       type: 'absensi',
       isOpen: isOpen,
+      message: message || (isOpen ? '' : 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'),
       updatedAt: new Date()
     };
     
