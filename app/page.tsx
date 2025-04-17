@@ -25,7 +25,7 @@ export default function Home() {
                 Sistem Absensi Pejuang Cuan
               </h1>
               <p className="mt-6 max-w-3xl text-xl text-blue-100">
-                Platform absensi digital untuk anggota komunitas Pejuang Cuan. Bergabunglah dengan ribuan trader dan investor yang telah menjadi bagian dari perjalanan kesuksesan kami.
+                Platform absensi digital untuk anggota komunitas Pejuang Cuan.
               </p>
             </div>
           </div>
