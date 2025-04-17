@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [deleteType, setDeleteType] = useState<'selected' | 'all' | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState('');
+  const [selectedGrup, setSelectedGrup] = useState<string>('all');
+  const [copySuccessGrup, setCopySuccessGrup] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -143,6 +145,27 @@ export default function DashboardPage() {
     return absenData.filter(entry => entry.grup === 'Keduanya saya join').length;
   };
 
+  const filteredData = useMemo(() => {
+    if (selectedGrup === 'all') return absenData;
+    return absenData.filter(entry => entry.grup === selectedGrup);
+  }, [absenData, selectedGrup]);
+
+  const copyWhatsAppByGrup = (grup: string) => {
+    const numbers = absenData
+      .filter(entry => entry.grup === grup)
+      .map(entry => `62${entry.whatsapp}`);
+    
+    if (numbers.length === 0) {
+      alert('Tidak ada nomor WhatsApp untuk grup ini');
+      return;
+    }
+    
+    navigator.clipboard.writeText(numbers.join('\n')).then(() => {
+      setCopySuccessGrup(grup);
+      setTimeout(() => setCopySuccessGrup(null), 3000);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navbar */}
@@ -191,6 +214,12 @@ export default function DashboardPage() {
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-shadow">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Total Absensi</h3>
             <p className="text-3xl font-bold text-blue-600">{absenData.length}</p>
+            <button
+              onClick={copyAllWhatsApp}
+              className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+            >
+              {copySuccess ? 'Tersalin!' : 'Salin Semua No. WA'}
+            </button>
           </div>
           
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-shadow">
@@ -198,6 +227,12 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold text-green-600">
               {getTotalByGrup('[1] Pejuang Cuan')}
             </p>
+            <button
+              onClick={() => copyWhatsAppByGrup('[1] Pejuang Cuan')}
+              className="mt-2 text-sm text-green-600 hover:text-green-800"
+            >
+              {copySuccessGrup === '[1] Pejuang Cuan' ? 'Tersalin!' : 'Salin No. WA'}
+            </button>
           </div>
           
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-shadow">
@@ -205,6 +240,12 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold text-indigo-600">
               {getTotalByGrup('[2] Pejuang Cuan')}
             </p>
+            <button
+              onClick={() => copyWhatsAppByGrup('[2] Pejuang Cuan')}
+              className="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
+            >
+              {copySuccessGrup === '[2] Pejuang Cuan' ? 'Tersalin!' : 'Salin No. WA'}
+            </button>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-shadow">
@@ -212,7 +253,27 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold text-purple-600">
               {getTotalKeduanya()}
             </p>
+            <button
+              onClick={() => copyWhatsAppByGrup('Keduanya saya join')}
+              className="mt-2 text-sm text-purple-600 hover:text-purple-800"
+            >
+              {copySuccessGrup === 'Keduanya saya join' ? 'Tersalin!' : 'Salin No. WA'}
+            </button>
           </div>
+        </div>
+
+        {/* Filter Grup */}
+        <div className="mb-6">
+          <select
+            value={selectedGrup}
+            onChange={(e) => setSelectedGrup(e.target.value)}
+            className="mt-1 block w-full md:w-64 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="all">Semua Grup</option>
+            <option value="[1] Pejuang Cuan">Pejuang Cuan 1</option>
+            <option value="[2] Pejuang Cuan">Pejuang Cuan 2</option>
+            <option value="Keduanya saya join">Keduanya</option>
+          </select>
         </div>
 
         {/* Action Buttons */}
@@ -263,7 +324,9 @@ export default function DashboardPage() {
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Data Absensi</h2>
               <p className="mt-1 text-sm text-gray-500">
-                Daftar lengkap absensi peserta Pejuang Cuan
+                {selectedGrup === 'all' 
+                  ? 'Daftar lengkap absensi peserta Pejuang Cuan'
+                  : `Menampilkan data untuk grup ${selectedGrup}`}
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -295,7 +358,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {absenData.map((entry) => (
+                  {filteredData.map((entry) => (
                     <tr key={entry._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         <input
@@ -341,10 +404,12 @@ export default function DashboardPage() {
                       </td>
                     </tr>
                   ))}
-                  {absenData.length === 0 && (
+                  {filteredData.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">
-                        Tidak ada data absensi
+                        {selectedGrup === 'all' 
+                          ? 'Tidak ada data absensi'
+                          : `Tidak ada data absensi untuk grup ${selectedGrup}`}
                       </td>
                     </tr>
                   )}
