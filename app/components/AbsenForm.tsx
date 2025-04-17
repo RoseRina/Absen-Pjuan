@@ -209,16 +209,6 @@ export default function AbsenForm() {
             
             <div className="flex items-center space-x-3">
               <div className="bg-orange-100 p-2 rounded-full">
-                <FaClock className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-gray-700 font-medium">Waktu</p>
-                <p className="text-gray-900 font-semibold">Akan diinformasikan kemudian</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="bg-orange-100 p-2 rounded-full">
                 <FaUsers className="h-5 w-5 text-orange-600" />
               </div>
               <div>
