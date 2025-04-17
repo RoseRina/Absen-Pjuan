@@ -375,7 +375,20 @@ export default function AbsenForm() {
               name="whatsapp"
               value={whatsappNumber}
               onChange={(e) => {
-                const value = e.target.value;
+                let value = e.target.value;
+                
+                // Menghapus awalan 0 atau +62 jika ada
+                if (value.startsWith('0')) {
+                  value = value.substring(1);
+                } else if (value.startsWith('+62')) {
+                  value = value.substring(3);
+                } else if (value.startsWith('62')) {
+                  value = value.substring(2);
+                }
+                
+                // Hanya mengizinkan angka
+                value = value.replace(/[^0-9]/g, '');
+                
                 setWhatsappNumber(value);
                 // Nonaktifkan tombol jika nomor cukup panjang untuk divalidasi
                 if (value.length >= 10) {
