@@ -42,6 +42,20 @@ export async function GET(req: Request) {
 
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
+    
+    // Periksa status absensi
+    const statusDoc = await db.collection('absensi-status').findOne({ type: 'absensi' });
+    console.log('Check - Status absensi saat ini:', statusDoc);
+    
+    // Jika status absensi ditutup, beri tahu bahwa absensi sedang ditutup
+    if (statusDoc && statusDoc.isOpen === false) {
+      console.log('Check - Absensi ditutup');
+      return NextResponse.json({
+        exists: false,
+        absensiClosed: true,
+        message: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
+      });
+    }
 
     // Mendapatkan tanggal hari ini, reset ke jam 00:00:00
     const today = new Date();

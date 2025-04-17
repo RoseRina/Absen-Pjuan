@@ -11,7 +11,13 @@ export default function AbsenForm() {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [isCheckingWhatsapp, setIsCheckingWhatsapp] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [absensiClosed, setAbsensiClosed] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // Cek status absensi saat komponen dimuat
+    checkAbsensiStatus();
+  }, []);
 
   useEffect(() => {
     if (whatsappNumber && whatsappNumber.length >= 10) {
@@ -22,10 +28,40 @@ export default function AbsenForm() {
     }
   }, [whatsappNumber]);
 
+  const checkAbsensiStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/status');
+      const data = await response.json();
+      
+      if (data.status && data.status.isOpen === false) {
+        setAbsensiClosed(true);
+        setMessage({
+          type: 'warning',
+          text: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
+        });
+        setIsDisabled(true);
+      } else {
+        setAbsensiClosed(false);
+      }
+    } catch (error) {
+      console.error('Error checking absensi status:', error);
+    }
+  };
+
   const checkExistingAbsensi = async (number: string) => {
     try {
       const response = await fetch(`/api/absen/check?whatsapp=${number}`);
       const data = await response.json();
+      
+      if (data.absensiClosed) {
+        setAbsensiClosed(true);
+        setMessage({
+          type: 'warning',
+          text: data.message
+        });
+        setIsDisabled(true);
+        return;
+      }
       
       if (data.exists) {
         setExistingAbsensi(data.message);
@@ -89,6 +125,10 @@ export default function AbsenForm() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (result.absensiClosed) {
+          setAbsensiClosed(true);
+          throw new Error(result.error || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.');
+        }
         throw new Error(result.error || 'Terjadi kesalahan saat menyimpan absensi');
       }
 

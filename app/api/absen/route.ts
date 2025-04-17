@@ -37,6 +37,22 @@ export async function POST(req: Request) {
     
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
+    
+    // Periksa status absensi
+    const statusDoc = await db.collection('absensi-status').findOne({ type: 'absensi' });
+    console.log('Absen - Status absensi saat ini:', statusDoc);
+    
+    // Jika status absensi ditutup, tolak permintaan
+    if (statusDoc && statusDoc.isOpen === false) {
+      console.log('Absen - Absensi ditutup');
+      return NextResponse.json(
+        { 
+          error: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.',
+          absensiClosed: true 
+        },
+        { status: 403 }
+      );
+    }
 
     // Cek apakah nomor WhatsApp sudah terdaftar hari ini
     const today = new Date();

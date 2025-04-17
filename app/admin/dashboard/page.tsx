@@ -24,6 +24,9 @@ export default function DashboardPage() {
   const [deleteMessage, setDeleteMessage] = useState('');
   const [selectedGrup, setSelectedGrup] = useState<string>('all');
   const [copySuccessGrup, setCopySuccessGrup] = useState<string | null>(null);
+  const [absenStatus, setAbsenStatus] = useState<{isOpen: boolean, updatedAt: string}|null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     const checkAuth = () => {
@@ -38,6 +41,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData();
+    fetchAbsenStatus();
   }, []);
 
   const fetchData = async () => {
@@ -50,6 +54,80 @@ export default function DashboardPage() {
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const fetchAbsenStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/status');
+      const data = await response.json();
+      
+      if (data.status) {
+        const formattedDate = new Date(data.status.updatedAt).toLocaleString('id-ID', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Jakarta'
+        });
+        
+        setAbsenStatus({
+          isOpen: data.status.isOpen,
+          updatedAt: formattedDate
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching absen status:', error);
+    }
+  };
+  
+  const toggleAbsenStatus = async () => {
+    try {
+      if (!absenStatus) return;
+      
+      setStatusLoading(true);
+      setStatusMessage('');
+      
+      const newStatus = !absenStatus.isOpen;
+      
+      const response = await fetch('/api/admin/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isOpen: newStatus }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        const formattedDate = new Date().toLocaleString('id-ID', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Jakarta'
+        });
+        
+        setAbsenStatus({
+          isOpen: newStatus,
+          updatedAt: formattedDate
+        });
+        
+        setStatusMessage(`Absensi berhasil ${newStatus ? 'dibuka' : 'ditutup'}`);
+        
+        // Hapus pesan setelah 3 detik
+        setTimeout(() => setStatusMessage(''), 3000);
+      } else {
+        setStatusMessage(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error toggling absen status:', error);
+      setStatusMessage('Terjadi kesalahan saat mengubah status absensi');
+    } finally {
+      setStatusLoading(false);
     }
   };
 
@@ -197,17 +275,70 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
+        
         {deleteMessage && (
-          <div className="mb-6 bg-blue-50 rounded-lg p-4 border border-blue-200 flex items-center justify-between">
+          <div className="mb-6 bg-green-50 rounded-lg p-4 border border-green-200">
             <div className="flex items-center">
-              <svg className="h-5 w-5 text-blue-400 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg className="h-5 w-5 text-green-400 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>{deleteMessage}</span>
             </div>
           </div>
         )}
+        
+        {/* Status Absensi Card */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Status Absensi</h2>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-4 sm:mb-0">
+              <div className="flex items-center">
+                <div className={`h-4 w-4 rounded-full mr-2 ${absenStatus?.isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-gray-700">
+                  Status: <span className="font-medium">{absenStatus?.isOpen ? 'Terbuka' : 'Tertutup'}</span>
+                </span>
+              </div>
+              {absenStatus && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Terakhir diubah: {absenStatus.updatedAt}
+                </p>
+              )}
+            </div>
+            
+            <button
+              onClick={toggleAbsenStatus}
+              disabled={statusLoading}
+              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all ${
+                absenStatus?.isOpen
+                  ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                  : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+              }`}
+            >
+              {statusLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Menyimpan...
+                </>
+              ) : absenStatus?.isOpen ? (
+                'Tutup Absensi'
+              ) : (
+                'Buka Absensi'
+              )}
+            </button>
+          </div>
+          
+          {statusMessage && (
+            <div className={`mt-4 text-sm ${
+              statusMessage.includes('Error') ? 'text-red-600' : 'text-green-600'
+            }`}>
+              {statusMessage}
+            </div>
+          )}
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
