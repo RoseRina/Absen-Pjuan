@@ -1,60 +1,22 @@
 import { NextResponse } from 'next/server';
-import * as fs from 'fs';
-import * as path from 'path';
+import { MongoClient } from 'mongodb';
 
-const DATA_FILE = 'public/data/absensi.json';
+const uri = process.env.MONGODB_URI || "mongodb+srv://[your-connection-string]";
+const dbName = "absensi-db";
 
-// Fungsi untuk membaca data
-function readData() {
+async function connectToDatabase() {
   try {
-    // Pastikan direktori ada
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) {
-      console.log('Membuat direktori:', dir);
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // Cek dan buat file jika belum ada
-    if (!fs.existsSync(DATA_FILE)) {
-      console.log('File tidak ditemukan, membuat file baru:', DATA_FILE);
-      fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
-      return [];
-    }
-
-    console.log('Membaca file:', DATA_FILE);
-    const data = fs.readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(data);
+    const client = await MongoClient.connect(uri);
+    const db = client.db(dbName);
+    return { client, db };
   } catch (error) {
-    console.error('Error detail pada readData:', error);
-    throw new Error(`Gagal membaca data: ${error.message}`);
-  }
-}
-
-// Fungsi untuk menulis data
-function writeData(data: any[]) {
-  try {
-    // Pastikan direktori ada
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) {
-      console.log('Membuat direktori untuk writeData:', dir);
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    console.log('Menulis data ke file:', DATA_FILE);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    
-    // Verifikasi bahwa data berhasil ditulis
-    const verifyData = fs.readFileSync(DATA_FILE, 'utf-8');
-    JSON.parse(verifyData); // Memastikan data valid JSON
-    
-    return true;
-  } catch (error) {
-    console.error('Error detail pada writeData:', error);
-    throw new Error(`Gagal menulis data: ${error.message}`);
+    console.error('Error connecting to database:', error);
+    throw new Error('Tidak dapat terhubung ke database');
   }
 }
 
 export async function POST(req: Request) {
+  let client;
   try {
     console.log('Menerima request POST absensi');
     const data = await req.json();
@@ -76,14 +38,12 @@ export async function POST(req: Request) {
       grup
     };
 
-    console.log('Membaca data existing...');
-    const existingData = readData();
+    // Koneksi ke MongoDB
+    const { client: mongoClient, db } = await connectToDatabase();
+    client = mongoClient;
     
-    console.log('Menambahkan entry baru:', newEntry);
-    existingData.push(newEntry);
-
-    console.log('Menyimpan data...');
-    writeData(existingData);
+    console.log('Menyimpan data ke MongoDB...');
+    await db.collection('absensi').insertOne(newEntry);
     
     console.log('Data berhasil disimpan');
     return NextResponse.json({ 
@@ -100,5 +60,9 @@ export async function POST(req: Request) {
       },
       { status: 500 }
     );
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 } 

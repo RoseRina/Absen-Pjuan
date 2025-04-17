@@ -1,25 +1,27 @@
 import { NextResponse } from 'next/server';
-import * as fs from 'fs';
-import * as path from 'path';
+import { MongoClient } from 'mongodb';
 
-const DATA_FILE = 'public/data/absensi.json';
+const uri = process.env.MONGODB_URI || "mongodb+srv://[your-connection-string]";
+const dbName = "absensi-db";
 
-function readData() {
+async function connectToDatabase() {
   try {
-    if (!fs.existsSync(DATA_FILE)) {
-      return [];
-    }
-    const data = fs.readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(data);
+    const client = await MongoClient.connect(uri);
+    const db = client.db(dbName);
+    return { client, db };
   } catch (error) {
-    console.error('Error reading data:', error);
-    return [];
+    console.error('Error connecting to database:', error);
+    throw new Error('Tidak dapat terhubung ke database');
   }
 }
 
 export async function GET() {
+  let client;
   try {
-    const entries = readData();
+    const { client: mongoClient, db } = await connectToDatabase();
+    client = mongoClient;
+    
+    const entries = await db.collection('absensi').find({}).toArray();
     return NextResponse.json({ entries });
   } catch (error) {
     console.error('Error:', error);
@@ -27,5 +29,9 @@ export async function GET() {
       { error: 'Terjadi kesalahan pada server' },
       { status: 500 }
     );
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 } 
