@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { FaUserAlt, FaWhatsapp, FaUsers, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import { MdWarning, MdInfo } from 'react-icons/md';
 
 export default function AbsenForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +14,7 @@ export default function AbsenForm() {
   const [isCheckingWhatsapp, setIsCheckingWhatsapp] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [absensiClosed, setAbsensiClosed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('Maaf, absensi sedang ditutup. Silakan coba lagi nanti.');
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -35,6 +38,7 @@ export default function AbsenForm() {
       
       if (data.status && data.status.isOpen === false) {
         setAbsensiClosed(true);
+        setStatusMessage(data.status.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.');
         setMessage({
           type: 'warning',
           text: data.status.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
@@ -56,18 +60,19 @@ export default function AbsenForm() {
       
       if (data.absensiClosed) {
         setAbsensiClosed(true);
+        setStatusMessage(data.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.');
         setMessage({
           type: 'warning',
           text: data.message
         });
-        setExistingAbsensi('');
+        setExistingAbsensi(''); // Reset existingAbsensi untuk menghindari duplikasi pesan
         setIsDisabled(true);
         return;
       }
       
       if (data.exists) {
         setExistingAbsensi(data.message);
-        setMessage(null);
+        setMessage(null); // Reset message untuk menghindari duplikasi pesan
         setIsDisabled(true);
       } else {
         setExistingAbsensi('');
@@ -93,18 +98,19 @@ export default function AbsenForm() {
       
       if (data.absensiClosed) {
         setAbsensiClosed(true);
+        setStatusMessage(data.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.');
         setMessage({
           type: 'warning',
           text: data.message
         });
-        setExistingAbsensi('');
+        setExistingAbsensi(''); // Reset existingAbsensi untuk menghindari duplikasi pesan
         setIsDisabled(true);
         return;
       }
       
       if (data.exists) {
-        setExistingAbsensi(data.message);
-        setMessage(null);
+        setExistingAbsensi(data.message); // Gunakan existingAbsensi daripada message
+        setMessage(null); // Reset message untuk menghindari duplikasi pesan
       } else if (!absensiClosed) {
         setMessage(null);
         setExistingAbsensi('');
@@ -164,6 +170,77 @@ export default function AbsenForm() {
       setIsLoading(false);
     }
   };
+
+  if (absensiClosed) {
+    // Tampilan full informasi ketika absensi ditutup
+    return (
+      <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 p-5 text-white">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <MdWarning className="text-4xl text-yellow-300 animate-pulse" />
+            <h1 className="text-2xl font-bold">Perhatian</h1>
+          </div>
+          <p className="text-center text-lg font-medium">Absensi Ditutup</p>
+        </div>
+        
+        <div className="p-6">
+          <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0 text-orange-500 mr-3">
+                <MdInfo className="h-6 w-6" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-orange-800">Informasi</h3>
+                <p className="mt-2 text-md text-orange-700 whitespace-pre-line">{statusMessage}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-orange-100 p-2 rounded-full">
+                <FaCalendarAlt className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-700 font-medium">Dibuka Kembali</p>
+                <p className="text-gray-900 font-semibold">Bulan Mei 2025</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="bg-orange-100 p-2 rounded-full">
+                <FaClock className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-700 font-medium">Waktu</p>
+                <p className="text-gray-900 font-semibold">Akan diinformasikan kemudian</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="bg-orange-100 p-2 rounded-full">
+                <FaUsers className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-700 font-medium">Grup</p>
+                <p className="text-gray-900 font-semibold">Pejuang Cuan 1 & 2</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-8 text-center">
+            <a href="https://t.me/+62Bz80xtc8g0MWJl" 
+               className="inline-flex items-center px-5 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium shadow-md hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+              <svg className="h-5 w-5 mr-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512">
+                <path d="M248 8C111 8 0 119 0 256s111 248 248 248s248-111 248-248S385 8 248 8zm121.8 169.9l-40.7 191.8c-3 13.6-11.1 16.9-22.4 10.5l-62-45.7l-29.9 28.8c-3.3 3.3-6.1 6.1-12.5 6.1l4.4-63.1l114.9-103.8c5-4.4-1.1-6.9-7.7-2.5l-142 89.4l-61.2-19.1c-13.3-4.2-13.6-13.3 2.8-19.7l239.1-92.2c11.1-4 20.8 2.7 17.2 19.5z"/>
+              </svg>
+              Gabung Channel Telegram
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto">
@@ -271,9 +348,7 @@ export default function AbsenForm() {
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
+              <FaUserAlt className="h-5 w-5" />
             </div>
             <input
               type="text"
@@ -292,9 +367,7 @@ export default function AbsenForm() {
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-              </svg>
+              <FaWhatsapp className="h-5 w-5" />
             </div>
             <input
               type="tel"
@@ -330,9 +403,7 @@ export default function AbsenForm() {
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-              </svg>
+              <FaUsers className="h-5 w-5" />
             </div>
             <select
               id="grup"
