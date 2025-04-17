@@ -23,34 +23,37 @@ export async function DELETE(req: Request) {
     console.log('Delete - Memulai proses penghapusan data...', new Date().toISOString());
     console.log('Delete - URI MongoDB tersedia:', !!uri);
     
-    const body = await req.json();
-    const { ids } = body;
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      console.log('Delete - Tidak ada ID valid yang diberikan');
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
       return NextResponse.json(
-        { error: 'Tidak ada ID yang valid untuk dihapus' },
+        { error: 'Parameter ID diperlukan' },
         { status: 400 }
       );
     }
-
-    console.log('Delete - Menghapus data dengan IDs:', ids);
     
-    // Konversi string ID ke ObjectId
-    const objectIds = ids.map(id => new ObjectId(id));
-
+    console.log('Delete - Menghapus data dengan ID:', id);
+    
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
     
-    const result = await db.collection('absensi').deleteMany({
-      _id: { $in: objectIds }
+    const result = await db.collection('absensi').deleteOne({
+      _id: new ObjectId(id)
     });
     
-    console.log(`Delete - Berhasil menghapus ${result.deletedCount} data`);
+    console.log(`Delete - Hasil penghapusan:`, result);
+    
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { error: 'Data tidak ditemukan' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ 
       success: true,
-      message: `Berhasil menghapus ${result.deletedCount} data absensi`,
+      message: 'Data berhasil dihapus',
       deletedCount: result.deletedCount
     });
   } catch (error: any) {
@@ -62,7 +65,7 @@ export async function DELETE(req: Request) {
     
     return NextResponse.json(
       { 
-        error: 'Terjadi kesalahan saat menghapus data absensi',
+        error: 'Terjadi kesalahan saat menghapus data',
         detail: error.message
       },
       { status: 500 }

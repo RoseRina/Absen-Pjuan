@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || "";
+const uri = process.env.MONGODB_URI || "mongodb+srv://absen_admin:vg3ML9hX0QxQfEeZ@cluster0.tqmtzm6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const dbName = "absensi-db";
 
 async function connectToDatabase() {
   const client = new MongoClient(uri);
   try {
-    console.log('Mencoba koneksi ke MongoDB...');
+    console.log('Absen - Mencoba koneksi ke MongoDB...');
     await client.connect();
-    console.log('Berhasil terhubung ke MongoDB');
+    console.log('Absen - Berhasil terhubung ke MongoDB');
     return { client, db: client.db(dbName) };
   } catch (error) {
-    console.error('Error koneksi MongoDB:', error);
+    console.error('Absen - Error koneksi MongoDB:', error);
     throw error;
   }
 }
@@ -21,23 +21,20 @@ export async function POST(req: Request) {
   let client;
   try {
     const body = await req.json();
-    console.log('Menerima data absensi:', body);
+    console.log('Absen - Menerima data absensi:', body);
     
     const { nama, whatsapp, grup } = body;
 
     if (!nama || !whatsapp || !grup) {
-      console.log('Data tidak lengkap:', { nama, whatsapp, grup });
+      console.log('Absen - Data tidak lengkap:', { nama, whatsapp, grup });
       return NextResponse.json(
         { error: 'Semua field harus diisi' },
         { status: 400 }
       );
     }
 
-    if (!process.env.MONGODB_URI) {
-      console.error('MONGODB_URI tidak ditemukan di environment variables');
-      throw new Error('Konfigurasi database tidak ditemukan');
-    }
-
+    console.log('Absen - URI MongoDB tersedia:', !!uri);
+    
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
 
@@ -45,12 +42,16 @@ export async function POST(req: Request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    console.log('Absen - Memeriksa data duplikat untuk WhatsApp:', whatsapp);
+    
     const existingEntry = await db.collection('absensi').findOne({
       whatsapp,
       created_at: { $gte: today }
     });
 
     if (existingEntry) {
+      console.log('Absen - Ditemukan entri duplikat:', existingEntry);
+      
       const absensiDate = new Date(existingEntry.created_at).toLocaleDateString('id-ID', {
         weekday: 'long',
         year: 'numeric',
@@ -77,11 +78,11 @@ export async function POST(req: Request) {
       created_at: new Date()
     };
 
-    console.log('Mencoba menyimpan data:', newEntry);
+    console.log('Absen - Mencoba menyimpan data:', newEntry);
     
-    console.log('Menyimpan ke collection absensi...');
+    console.log('Absen - Menyimpan ke collection absensi...');
     const result = await db.collection('absensi').insertOne(newEntry);
-    console.log('Data berhasil disimpan dengan ID:', result.insertedId);
+    console.log('Absen - Data berhasil disimpan dengan ID:', result.insertedId);
 
     return NextResponse.json({ 
       success: true,
@@ -93,13 +94,13 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Error detail:', error);
+    console.error('Absen - Error detail:', error);
     
     if (error.stack) {
-      console.error('Stack trace:', error.stack);
+      console.error('Absen - Stack trace:', error.stack);
     }
 
-    console.log('MongoDB URI tersedia:', !!process.env.MONGODB_URI);
+    console.log('Absen - MongoDB URI tersedia:', !!uri);
     
     return NextResponse.json(
       { 
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
     );
   } finally {
     if (client) {
-      console.log('Menutup koneksi MongoDB');
+      console.log('Absen - Menutup koneksi MongoDB');
       await client.close();
     }
   }
