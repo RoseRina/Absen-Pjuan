@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
   // Mendapatkan response
   const response = NextResponse.next();
 
-  // Tambahkan header CORS
+  // Tambahkan header CORS untuk semua response
   response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -28,5 +28,8 @@ export function middleware(request: NextRequest) {
 
 // Konfigurasi path yang akan diproses oleh middleware
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/api/:path*',
+    '/admin/:path*'
+  ]
 }; 

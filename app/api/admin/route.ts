@@ -9,6 +9,10 @@ async function connectToDatabase() {
   const client = new MongoClient(uri);
   try {
     console.log('Admin - Mencoba koneksi ke MongoDB...');
+    console.log('Admin - Environment:', process.env.NODE_ENV);
+    console.log('Admin - Database URI tersedia:', !!process.env.MONGODB_URI);
+    console.log('Admin - Menggunakan URI:', uri);
+    
     await client.connect();
     console.log('Admin - Berhasil terhubung ke MongoDB');
     return { client, db: client.db(dbName) };
@@ -45,12 +49,16 @@ export async function GET() {
     
     if (error instanceof Error) {
       console.error('Admin - Stack trace:', error.stack);
+      console.error('Admin - Error name:', error.name);
+      console.error('Admin - Error message:', error.message);
     }
     
     const errorResponse = NextResponse.json(
       { 
         error: 'Terjadi kesalahan pada server',
-        detail: error instanceof Error ? error.message : String(error)
+        detail: error instanceof Error ? error.message : String(error),
+        env: process.env.NODE_ENV,
+        hasMongoUri: !!process.env.MONGODB_URI
       },
       { status: 500 }
     );
