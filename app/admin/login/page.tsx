@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,21 +18,26 @@ export default function LoginPage() {
     const username = formData.get('username');
     const password = formData.get('password');
 
-    if (username === 'admin' && password === 'admin123') {
-      // Set session storage to maintain login state
-      sessionStorage.setItem('adminLoggedIn', 'true');
-      router.push('/admin/dashboard');
-    } else {
-      setError('Username atau password salah');
+    try {
+      if (username === 'admin' && password === 'admin123') {
+        // Set cookie untuk login
+        Cookies.set('adminLoggedIn', 'true', { expires: 1 }); // expires in 1 day
+        router.push('/admin/dashboard');
+      } else {
+        setError('Username atau password salah');
+      }
+    } catch (error) {
+      setError('Terjadi kesalahan saat login');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Login Admin</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Login Admin</h1>
           <p className="text-gray-600">Masuk ke dashboard admin Pejuang Cuan</p>
         </div>
 
@@ -44,32 +50,34 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                required
-                className="appearance-none block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Masukkan username"
-              />
-            </div>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  required
+                  className="appearance-none block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Masukkan username"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                className="appearance-none block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Masukkan password"
-              />
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  required
+                  className="appearance-none block w-full px-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Masukkan password"
+                />
+              </div>
             </div>
 
             <button
