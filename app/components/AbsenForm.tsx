@@ -184,36 +184,33 @@ export default function AbsenForm() {
             <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
               Nomor WhatsApp
             </label>
-            <div className="relative">
-              <input
-                type="tel"
-                id="whatsapp"
-                name="whatsapp"
-                value={whatsappNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setWhatsappNumber(value);
-                  // Cek nomor WhatsApp setelah pengguna selesai mengetik
-                  if (value.length >= 10) {
-                    const timeoutId = setTimeout(() => checkWhatsappNumber(value), 500);
-                    return () => clearTimeout(timeoutId);
-                  }
-                }}
-                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pl-10 ${
-                  message?.type === 'warning' ? 'border-yellow-500' : ''
-                }`}
-                placeholder="Contoh: 081234567890"
-                required
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaWhatsapp className="h-5 w-5 text-gray-400" />
+            <input
+              type="tel"
+              id="whatsapp"
+              name="whatsapp"
+              value={whatsappNumber}
+              onChange={(e) => {
+                const value = e.target.value;
+                setWhatsappNumber(value);
+                // Cek nomor WhatsApp setelah pengguna selesai mengetik
+                if (value.length >= 10) {
+                  const timeoutId = setTimeout(() => checkWhatsappNumber(value), 500);
+                  return () => clearTimeout(timeoutId);
+                }
+              }}
+              className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                message?.type === 'warning' ? 'border-yellow-500' : ''
+              }`}
+              placeholder="+62 8xxxxxxxxx"
+              required
+            />
+            <div className="text-xs text-gray-500 mt-1">Contoh: 81234567890 (tanpa awalan 0/+62)</div>
+            {isCheckingWhatsapp && (
+              <div className="mt-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-500 inline-block mr-1"></div>
+                <span className="text-xs text-gray-500">Memeriksa nomor...</span>
               </div>
-              {isCheckingWhatsapp && (
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></div>
-                </div>
-              )}
-            </div>
+            )}
             {message && (
               <p className={`mt-2 text-sm ${
                 message.type === 'success' ? 'text-green-600' :
