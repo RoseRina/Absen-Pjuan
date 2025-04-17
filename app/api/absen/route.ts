@@ -38,6 +38,36 @@ export async function POST(req: Request) {
       throw new Error('Konfigurasi database tidak ditemukan');
     }
 
+    const { client: mongoClient, db } = await connectToDatabase();
+    client = mongoClient;
+
+    // Cek apakah nomor WhatsApp sudah terdaftar hari ini
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existingEntry = await db.collection('absensi').findOne({
+      whatsapp,
+      created_at: { $gte: today }
+    });
+
+    if (existingEntry) {
+      const absensiDate = new Date(existingEntry.created_at).toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      return NextResponse.json(
+        { 
+          error: `Nomor WhatsApp ini sudah melakukan absensi pada ${absensiDate}. Cukup sekali absen saja.`,
+          duplicate: true,
+          existingEntry
+        },
+        { status: 409 } // 409 Conflict - resource sudah ada
+      );
+    }
+
     const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const newEntry = {
       timestamp,
@@ -48,9 +78,6 @@ export async function POST(req: Request) {
     };
 
     console.log('Mencoba menyimpan data:', newEntry);
-    
-    const { client: mongoClient, db } = await connectToDatabase();
-    client = mongoClient;
     
     console.log('Menyimpan ke collection absensi...');
     const result = await db.collection('absensi').insertOne(newEntry);
