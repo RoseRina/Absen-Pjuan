@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { FaWhatsapp } from 'react-icons/fa';
 
 export default function AbsenForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -8,6 +9,8 @@ export default function AbsenForm() {
   const [error, setError] = useState('');
   const [existingAbsensi, setExistingAbsensi] = useState<string>('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+  const [isCheckingWhatsapp, setIsCheckingWhatsapp] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -39,6 +42,29 @@ export default function AbsenForm() {
     } catch (error) {
       console.error('Error checking existing absensi:', error);
       setExistingAbsensi('');
+    }
+  };
+
+  const checkWhatsappNumber = async (whatsapp: string) => {
+    if (!whatsapp || whatsapp.length < 10) return;
+    
+    setIsCheckingWhatsapp(true);
+    try {
+      const response = await fetch(`/api/absen/check?whatsapp=${whatsapp}`);
+      const data = await response.json();
+      
+      if (data.exists) {
+        setMessage({
+          type: 'warning',
+          text: data.message
+        });
+      } else {
+        setMessage(null);
+      }
+    } catch (error) {
+      console.error('Error checking WhatsApp:', error);
+    } finally {
+      setIsCheckingWhatsapp(false);
     }
   };
 
@@ -157,35 +183,49 @@ export default function AbsenForm() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mb-4">
+            <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
               Nomor WhatsApp
             </label>
-            <div className="relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-              </div>
-              <div className="absolute inset-y-0 left-8 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">+62</span>
-              </div>
+            <div className="relative">
               <input
                 type="tel"
                 id="whatsapp"
                 name="whatsapp"
-                required
                 value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="appearance-none block w-full pl-20 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="8xxxxxxxxxx"
-                pattern="8[0-9]{8,11}"
-                title="Masukkan nomor WhatsApp yang valid (8xxxxxxxxxx)"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setWhatsappNumber(value);
+                  // Cek nomor WhatsApp setelah pengguna selesai mengetik
+                  if (value.length >= 10) {
+                    const timeoutId = setTimeout(() => checkWhatsappNumber(value), 500);
+                    return () => clearTimeout(timeoutId);
+                  }
+                }}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pl-10 ${
+                  message?.type === 'warning' ? 'border-yellow-500' : ''
+                }`}
+                placeholder="Contoh: 081234567890"
+                required
               />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaWhatsapp className="h-5 w-5 text-gray-400" />
+              </div>
+              {isCheckingWhatsapp && (
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-500"></div>
+                </div>
+              )}
             </div>
-            <p className="mt-2 text-sm text-gray-500">
-              Contoh: 81234567890 (tanpa awalan 0/+62)
-            </p>
+            {message && (
+              <p className={`mt-2 text-sm ${
+                message.type === 'success' ? 'text-green-600' :
+                message.type === 'error' ? 'text-red-600' :
+                'text-yellow-600'
+              }`}>
+                {message.text}
+              </p>
+            )}
           </div>
 
           <div>
