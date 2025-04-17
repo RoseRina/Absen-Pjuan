@@ -357,7 +357,7 @@ export default function DashboardPage() {
         {absenStatus && !absenStatus.isOpen && (
           <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
             <h3 className="text-sm font-medium text-gray-700 mb-1">Pesan yang ditampilkan kepada pengguna:</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 whitespace-pre-line">
               "{absenStatus.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'}"
             </p>
           </div>
