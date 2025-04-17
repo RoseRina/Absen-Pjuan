@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || "";
+// Pastikan gunakan connection string yang benar
+const uri = process.env.MONGODB_URI || "mongodb+srv://absen_admin:vg3ML9hX0QxQfEeZ@cluster0.tqmtzm6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const dbName = "absensi-db";
 
 async function connectToDatabase() {
@@ -20,21 +21,15 @@ async function connectToDatabase() {
 export async function GET() {
   let client;
   try {
-    if (!process.env.MONGODB_URI) {
-      console.error('MONGODB_URI tidak ditemukan di environment variables');
-      return NextResponse.json(
-        { error: 'Konfigurasi database tidak ditemukan' },
-        { status: 500 }
-      );
-    }
-
-    console.log('Admin - Memulai pengambilan data...');
+    console.log('Admin - Memulai pengambilan data...', new Date().toISOString());
+    console.log('Admin - URI MongoDB tersedia:', !!uri);
+    
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
     
     console.log('Admin - Mengambil data dari collection absensi...');
     const entries = await db.collection('absensi').find({}).toArray();
-    console.log(`Admin - Berhasil mengambil ${entries.length} data`);
+    console.log(`Admin - Berhasil mengambil ${entries.length} data:`, JSON.stringify(entries.slice(0, 2)));
     
     return NextResponse.json({ entries });
   } catch (error) {
