@@ -2,17 +2,24 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const DATA_FILE = 'public/data/absensi.json';
+
+function readData() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) {
+      return [];
+    }
+    const data = fs.readFileSync(DATA_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading data:', error);
+    return [];
+  }
+}
+
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'data', 'absensi.txt');
-    
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ entries: [] });
-    }
-
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const entries = fileContent.split('\n').filter(line => line.trim() !== '');
-
+    const entries = readData();
     return NextResponse.json({ entries });
   } catch (error) {
     console.error('Error:', error);

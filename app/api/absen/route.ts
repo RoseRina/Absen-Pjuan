@@ -2,6 +2,44 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const DATA_FILE = 'public/data/absensi.json';
+
+// Fungsi untuk membaca data
+function readData() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) {
+      // Buat direktori jika belum ada
+      const dir = path.dirname(DATA_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      // Buat file dengan array kosong
+      fs.writeFileSync(DATA_FILE, '[]');
+      return [];
+    }
+    const data = fs.readFileSync(DATA_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading data:', error);
+    return [];
+  }
+}
+
+// Fungsi untuk menulis data
+function writeData(data: any[]) {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error writing data:', error);
+    return false;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
@@ -15,20 +53,25 @@ export async function POST(req: Request) {
     }
 
     const timestamp = new Date().toLocaleString('id-ID');
-    const absenEntry = `${timestamp} | ${nama} | ${whatsapp} | ${grup}\n`;
+    const newEntry = {
+      timestamp,
+      nama,
+      whatsapp,
+      grup
+    };
+
+    // Baca data yang ada
+    const existingData = readData();
     
-    const filePath = path.join(process.cwd(), 'data', 'absensi.txt');
-    
-    // Buat direktori data jika belum ada
-    const dirPath = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
+    // Tambahkan data baru
+    existingData.push(newEntry);
+
+    // Simpan kembali ke file
+    if (writeData(existingData)) {
+      return NextResponse.json({ success: true });
+    } else {
+      throw new Error('Gagal menyimpan data');
     }
-
-    // Append data ke file
-    fs.appendFileSync(filePath, absenEntry);
-
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
