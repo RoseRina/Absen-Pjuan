@@ -7,45 +7,61 @@ const DATA_FILE = 'public/data/absensi.json';
 // Fungsi untuk membaca data
 function readData() {
   try {
+    // Pastikan direktori ada
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) {
+      console.log('Membuat direktori:', dir);
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // Cek dan buat file jika belum ada
     if (!fs.existsSync(DATA_FILE)) {
-      // Buat direktori jika belum ada
-      const dir = path.dirname(DATA_FILE);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      // Buat file dengan array kosong
-      fs.writeFileSync(DATA_FILE, '[]');
+      console.log('File tidak ditemukan, membuat file baru:', DATA_FILE);
+      fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
       return [];
     }
+
+    console.log('Membaca file:', DATA_FILE);
     const data = fs.readFileSync(DATA_FILE, 'utf-8');
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading data:', error);
-    return [];
+    console.error('Error detail pada readData:', error);
+    throw new Error(`Gagal membaca data: ${error.message}`);
   }
 }
 
 // Fungsi untuk menulis data
 function writeData(data: any[]) {
   try {
+    // Pastikan direktori ada
     const dir = path.dirname(DATA_FILE);
     if (!fs.existsSync(dir)) {
+      console.log('Membuat direktori untuk writeData:', dir);
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+
+    console.log('Menulis data ke file:', DATA_FILE);
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    
+    // Verifikasi bahwa data berhasil ditulis
+    const verifyData = fs.readFileSync(DATA_FILE, 'utf-8');
+    JSON.parse(verifyData); // Memastikan data valid JSON
+    
     return true;
   } catch (error) {
-    console.error('Error writing data:', error);
-    return false;
+    console.error('Error detail pada writeData:', error);
+    throw new Error(`Gagal menulis data: ${error.message}`);
   }
 }
 
 export async function POST(req: Request) {
   try {
+    console.log('Menerima request POST absensi');
     const data = await req.json();
     const { nama, whatsapp, grup } = data;
 
     if (!nama || !whatsapp || !grup) {
+      console.log('Data tidak lengkap:', { nama, whatsapp, grup });
       return NextResponse.json(
         { error: 'Semua field harus diisi' },
         { status: 400 }
@@ -60,22 +76,28 @@ export async function POST(req: Request) {
       grup
     };
 
-    // Baca data yang ada
+    console.log('Membaca data existing...');
     const existingData = readData();
     
-    // Tambahkan data baru
+    console.log('Menambahkan entry baru:', newEntry);
     existingData.push(newEntry);
 
-    // Simpan kembali ke file
-    if (writeData(existingData)) {
-      return NextResponse.json({ success: true });
-    } else {
-      throw new Error('Gagal menyimpan data');
-    }
+    console.log('Menyimpan data...');
+    writeData(existingData);
+    
+    console.log('Data berhasil disimpan');
+    return NextResponse.json({ 
+      success: true,
+      message: 'Data absensi berhasil disimpan'
+    });
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error pada POST handler:', error);
     return NextResponse.json(
-      { error: 'Terjadi kesalahan pada server' },
+      { 
+        error: 'Terjadi kesalahan saat menyimpan absensi',
+        detail: error.message 
+      },
       { status: 500 }
     );
   }
