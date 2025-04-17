@@ -1,26 +1,29 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || "mongodb+srv://[your-connection-string]";
+const uri = process.env.MONGODB_URI || "";
 const dbName = "absensi-db";
 
 async function connectToDatabase() {
+  const client = new MongoClient(uri);
   try {
-    const client = await MongoClient.connect(uri);
-    const db = client.db(dbName);
-    return { client, db };
+    console.log('Mencoba koneksi ke MongoDB...');
+    await client.connect();
+    console.log('Berhasil terhubung ke MongoDB');
+    return { client, db: client.db(dbName) };
   } catch (error) {
-    console.error('Error connecting to database:', error);
-    throw new Error('Tidak dapat terhubung ke database');
+    console.error('Error koneksi MongoDB:', error);
+    throw error;
   }
 }
 
 export async function POST(req: Request) {
   let client;
   try {
-    console.log('Menerima request POST absensi');
-    const data = await req.json();
-    const { nama, whatsapp, grup } = data;
+    const body = await req.json();
+    console.log('Menerima data absensi:', body);
+    
+    const { nama, whatsapp, grup } = body;
 
     if (!nama || !whatsapp || !grup) {
       console.log('Data tidak lengkap:', { nama, whatsapp, grup });
@@ -30,38 +33,58 @@ export async function POST(req: Request) {
       );
     }
 
-    const timestamp = new Date().toLocaleString('id-ID');
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI tidak ditemukan di environment variables');
+      throw new Error('Konfigurasi database tidak ditemukan');
+    }
+
+    const timestamp = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const newEntry = {
       timestamp,
       nama,
       whatsapp,
-      grup
+      grup,
+      created_at: new Date()
     };
 
-    // Koneksi ke MongoDB
+    console.log('Mencoba menyimpan data:', newEntry);
+    
     const { client: mongoClient, db } = await connectToDatabase();
     client = mongoClient;
     
-    console.log('Menyimpan data ke MongoDB...');
-    await db.collection('absensi').insertOne(newEntry);
-    
-    console.log('Data berhasil disimpan');
+    console.log('Menyimpan ke collection absensi...');
+    const result = await db.collection('absensi').insertOne(newEntry);
+    console.log('Data berhasil disimpan dengan ID:', result.insertedId);
+
     return NextResponse.json({ 
       success: true,
-      message: 'Data absensi berhasil disimpan'
+      message: 'Data absensi berhasil disimpan',
+      data: {
+        id: result.insertedId,
+        ...newEntry
+      }
     });
 
-  } catch (error) {
-    console.error('Error pada POST handler:', error);
+  } catch (error: any) {
+    console.error('Error detail:', error);
+    
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+
+    console.log('MongoDB URI tersedia:', !!process.env.MONGODB_URI);
+    
     return NextResponse.json(
       { 
         error: 'Terjadi kesalahan saat menyimpan absensi',
-        detail: error.message 
+        detail: error.message,
+        type: error.name
       },
       { status: 500 }
     );
   } finally {
     if (client) {
+      console.log('Menutup koneksi MongoDB');
       await client.close();
     }
   }
