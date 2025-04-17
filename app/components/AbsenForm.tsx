@@ -37,11 +37,12 @@ export default function AbsenForm() {
         setAbsensiClosed(true);
         setMessage({
           type: 'warning',
-          text: 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
+          text: data.status.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'
         });
         setIsDisabled(true);
       } else {
         setAbsensiClosed(false);
+        setMessage(null);
       }
     } catch (error) {
       console.error('Error checking absensi status:', error);
@@ -69,6 +70,9 @@ export default function AbsenForm() {
       } else {
         setExistingAbsensi('');
         setIsDisabled(false);
+        if (!absensiClosed) {
+          setMessage(null);
+        }
       }
     } catch (error) {
       console.error('Error checking existing absensi:', error);
@@ -85,12 +89,22 @@ export default function AbsenForm() {
       const response = await fetch(`/api/absen/check?whatsapp=${whatsapp}`);
       const data = await response.json();
       
+      if (data.absensiClosed) {
+        setAbsensiClosed(true);
+        setMessage({
+          type: 'warning',
+          text: data.message
+        });
+        setIsDisabled(true);
+        return;
+      }
+      
       if (data.exists) {
         setMessage({
           type: 'warning',
           text: data.message
         });
-      } else {
+      } else if (!absensiClosed) {
         setMessage(null);
       }
     } catch (error) {

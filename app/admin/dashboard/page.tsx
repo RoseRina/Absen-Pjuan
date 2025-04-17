@@ -128,8 +128,8 @@ export default function DashboardPage() {
         
         setStatusMessage(`Absensi berhasil ${newStatus ? 'dibuka' : 'ditutup'}`);
         
-        // Hapus pesan setelah 3 detik
-        setTimeout(() => setStatusMessage(''), 3000);
+        // Tidak perlu otomatis menghilangkan pesan
+        // setTimeout(() => setStatusMessage(''), 3000);
       } else {
         setStatusMessage(`Error: ${result.error}`);
       }
@@ -224,8 +224,8 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
       closeModal();
-      // Hapus pesan setelah 3 detik
-      setTimeout(() => setDeleteMessage(''), 3000);
+      // Tidak perlu otomatis menghilangkan pesan
+      // setTimeout(() => setDeleteMessage(''), 3000);
     }
   };
 
@@ -292,8 +292,8 @@ export default function DashboardPage() {
         
         setStatusMessage('Pesan berhasil disimpan');
         
-        // Hapus pesan setelah 3 detik
-        setTimeout(() => setStatusMessage(''), 3000);
+        // Tidak perlu otomatis menghilangkan pesan
+        // setTimeout(() => setStatusMessage(''), 3000);
       } else {
         setStatusMessage(`Error: ${result.error}`);
       }
@@ -337,13 +337,50 @@ export default function DashboardPage() {
           </div>
         )}
         
+        {statusMessage && (
+          <div className={`mt-4 text-sm ${
+            statusMessage.includes('Error') ? 'text-red-600' : 'text-green-600'
+          } flex justify-between items-center`}>
+            <span>{statusMessage}</span>
+            <button 
+              onClick={() => setStatusMessage('')}
+              className="text-gray-500 hover:text-gray-700 ml-2"
+              title="Hapus pesan"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+        
+        {absenStatus && !absenStatus.isOpen && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-700 mb-1">Pesan yang ditampilkan kepada pengguna:</h3>
+            <p className="text-sm text-gray-600">
+              "{absenStatus.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'}"
+            </p>
+          </div>
+        )}
+        
         {deleteMessage && (
           <div className="mb-6 bg-green-50 rounded-lg p-4 border border-green-200">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-green-400 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span>{deleteMessage}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-green-400 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>{deleteMessage}</span>
+              </div>
+              <button 
+                onClick={() => setDeleteMessage('')}
+                className="text-gray-500 hover:text-gray-700"
+                title="Hapus pesan"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
         )}
@@ -437,23 +474,6 @@ export default function DashboardPage() {
                   )}
                 </button>
               </div>
-            </div>
-          )}
-          
-          {statusMessage && (
-            <div className={`mt-4 text-sm ${
-              statusMessage.includes('Error') ? 'text-red-600' : 'text-green-600'
-            }`}>
-              {statusMessage}
-            </div>
-          )}
-          
-          {absenStatus && !absenStatus.isOpen && (
-            <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Pesan yang ditampilkan kepada pengguna:</h3>
-              <p className="text-sm text-gray-600">
-                "{absenStatus.message || 'Maaf, absensi sedang ditutup. Silakan coba lagi nanti.'}"
-              </p>
             </div>
           )}
         </div>
