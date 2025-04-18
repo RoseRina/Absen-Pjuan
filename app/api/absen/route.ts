@@ -54,15 +54,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Cek apakah nomor WhatsApp sudah terdaftar hari ini
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
+    // Cek apakah nomor WhatsApp sudah terdaftar (tanpa batasan hari)
     console.log('Absen - Memeriksa data duplikat untuk WhatsApp:', whatsapp);
     
     const existingEntry = await db.collection('absensi').findOne({
-      whatsapp,
-      created_at: { $gte: today }
+      whatsapp
     });
 
     if (existingEntry) {
@@ -77,7 +73,7 @@ export async function POST(req: Request) {
       
       return NextResponse.json(
         { 
-          error: `Nomor WhatsApp ini sudah melakukan absensi pada ${absensiDate}. Cukup sekali absen saja.`,
+          error: `Nomor WhatsApp ini sudah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu sampai data absensi direset oleh admin.`,
           duplicate: true,
           existingEntry
         },

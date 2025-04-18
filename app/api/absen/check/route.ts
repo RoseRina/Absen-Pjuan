@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || "";
+const uri = process.env.MONGODB_URI || "mongodb+srv://absen_admin:vg3ML9hX0QxQfEeZ@cluster0.tqmtzm6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const dbName = "absensi-db";
+const collectionName = "absensi-status";
 
 async function connectToDatabase() {
   const client = new MongoClient(uri);
   try {
-    console.log('Check - Mencoba koneksi ke MongoDB...');
+    console.log('Status - Mencoba koneksi ke MongoDB...');
     await client.connect();
-    console.log('Check - Berhasil terhubung ke MongoDB');
+    console.log('Status - Berhasil terhubung ke MongoDB');
     return { client, db: client.db(dbName) };
   } catch (error) {
-    console.error('Check - Error koneksi MongoDB:', error);
+    console.error('Status - Error koneksi MongoDB:', error);
     throw error;
   }
 }
@@ -57,16 +58,9 @@ export async function GET(req: Request) {
       });
     }
 
-    // Mendapatkan tanggal hari ini, reset ke jam 00:00:00
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    console.log('Check - Mencari data absensi untuk hari ini:', today.toISOString());
-
-    // Cari absensi dengan nomor WhatsApp yang sama yang dibuat hari ini
+    // Cari absensi dengan nomor WhatsApp yang sama (tanpa batasan hari)
     const absensi = await db.collection('absensi').findOne({
-      whatsapp,
-      created_at: { $gte: today }
+      whatsapp
     });
 
     if (absensi) {
@@ -83,7 +77,7 @@ export async function GET(req: Request) {
 
       return NextResponse.json({
         exists: true,
-        message: `Anda sudah melakukan absensi hari ini pada ${absensiDate}`,
+        message: `Anda sudah pernah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu sampai data absensi direset oleh admin.`,
         absensi: {
           ...absensi,
           formatted_date: absensiDate
@@ -91,10 +85,10 @@ export async function GET(req: Request) {
       });
     }
 
-    console.log('Check - Tidak ditemukan data absensi untuk hari ini');
+    console.log('Check - Tidak ditemukan data absensi untuk nomor ini');
     return NextResponse.json({
       exists: false,
-      message: 'Anda belum melakukan absensi hari ini',
+      message: 'Anda belum melakukan absensi',
       absensi: null
     });
 
