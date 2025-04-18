@@ -77,7 +77,7 @@ export async function GET(req: Request) {
 
       return NextResponse.json({
         exists: true,
-        message: `Anda sudah pernah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu sampai data absensi direset oleh admin.`,
+        message: `Anda sudah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu periode berikutnya. Per periode cukup absen 1x saja.`,
         absensi: {
           ...absensi,
           formatted_date: absensiDate

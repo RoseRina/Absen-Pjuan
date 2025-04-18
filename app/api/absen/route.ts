@@ -64,16 +64,19 @@ export async function POST(req: Request) {
     if (existingEntry) {
       console.log('Absen - Ditemukan entri duplikat:', existingEntry);
       
-      const absensiDate = new Date(existingEntry.created_at).toLocaleDateString('id-ID', {
+      const absensiDate = new Date(existingEntry.created_at).toLocaleString('id-ID', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Jakarta'
       });
       
       return NextResponse.json(
         { 
-          error: `Nomor WhatsApp ini sudah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu sampai data absensi direset oleh admin.`,
+          error: `Anda sudah melakukan absensi pada ${absensiDate}. Untuk absen lagi, tunggu periode berikutnya. Per periode cukup absen 1x saja.`,
           duplicate: true,
           existingEntry
         },
