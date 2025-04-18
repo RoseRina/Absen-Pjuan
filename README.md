@@ -1,48 +1,40 @@
-# Aplikasi Absensi Pejuang Cuan
+# Sistem Absensi Online
 
-Aplikasi web untuk mengelola absensi peserta Pejuang Cuan. Dibangun menggunakan Next.js 14 dan MongoDB.
-
-## Fitur
-
-- Form absensi dengan validasi
-- Dashboard admin untuk melihat dan mengelola data absensi
-- Pengelompokan peserta berdasarkan grup ([1] Pejuang Cuan, [2] Pejuang Cuan, atau keduanya)
-- Validasi nomor WhatsApp untuk mencegah duplikasi absensi dalam satu hari
-- Export nomor WhatsApp peserta untuk broadcast
-- Pengelolaan data (hapus data terpilih atau semua data)
+Aplikasi sistem absensi online berbasis web yang dibangun menggunakan Next.js 14, TypeScript, dan MongoDB.
 
 ## Teknologi yang Digunakan
 
-- Next.js 14 (App Router)
-- MongoDB Atlas
-- Tailwind CSS
+- Next.js 14
 - TypeScript
+- MongoDB
+- Tailwind CSS
+- React Icons
+- Axios
 
-## Persyaratan Sistem
+## Prasyarat
 
-- Node.js 18.17 atau yang lebih baru
-- MongoDB Atlas account
+- Node.js versi 18 atau lebih tinggi
+- MongoDB Atlas account atau MongoDB lokal
 - NPM atau Yarn
 
 ## Instalasi
 
-1. Clone repository
+1. Clone repositori ini
 ```bash
-git clone https://github.com/RoseRina/Absen-Pjuan.git
-cd Absen-Pjuan
+git clone [url-repositori]
+cd absen-pjuan
 ```
 
-2. Install dependencies
+2. Install dependensi
 ```bash
 npm install
 # atau
 yarn install
 ```
 
-3. Konfigurasi environment variables
-Buat file `.env` di root project dan isi dengan:
-```env
-MONGODB_URI=mongodb+srv://absen_admin:vg3ML9hX0QxQfEeZ@cluster0.tqmtzm6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+3. Salin file `.env.example` ke `.env.local` dan isi dengan konfigurasi yang sesuai
+```bash
+MONGODB_URI=your_mongodb_connection_string
 ```
 
 4. Jalankan aplikasi dalam mode development
@@ -52,49 +44,37 @@ npm run dev
 yarn dev
 ```
 
-5. Buka browser dan akses `http://localhost:3000`
+5. Buka [http://localhost:3000](http://localhost:3000) di browser Anda
+
+## Fitur
+
+- ✅ Sistem absensi real-time
+- 🔐 Autentikasi admin
+- 📊 Dashboard admin
+- 📱 Responsive design
+- 🌐 API endpoints untuk manajemen absensi
+- 🔄 Status absensi yang dapat dikonfigurasi (buka/tutup)
+
+## Struktur API
+
+### Admin Status API
+- `GET /api/admin/status` - Mendapatkan status absensi saat ini
+- `POST /api/admin/status` - Mengubah status absensi (buka/tutup)
 
 ## Deployment
 
-Aplikasi ini dapat di-deploy ke Vercel dengan langkah berikut:
+Aplikasi ini dikonfigurasi untuk deployment di Vercel. Untuk melakukan deployment:
 
-1. Push kode ke GitHub repository
-2. Hubungkan repository dengan Vercel
-3. Tambahkan environment variable `MONGODB_URI` di dashboard Vercel
-4. Deploy aplikasi
+1. Push kode ke repositori GitHub
+2. Hubungkan repositori dengan Vercel
+3. Vercel akan otomatis melakukan build dan deployment
 
-## Struktur Project
+## Environment Variables
 
-```
-Absen-Pjuan/
-├── app/
-│   ├── api/            # API endpoints
-│   ├── admin/          # Admin dashboard
-│   └── components/     # React components
-├── public/            # Static files
-├── styles/           # CSS files
-├── .env             # Environment variables
-└── package.json     # Project dependencies
-```
+Pastikan untuk mengatur environment variables berikut di Vercel:
 
-## API Endpoints
-
-- `POST /api/absen` - Submit absensi baru
-- `GET /api/admin` - Ambil semua data absensi
-- `DELETE /api/admin/delete` - Hapus data terpilih
-- `DELETE /api/admin/delete-all` - Hapus semua data
-- `GET /api/absen/check` - Cek status absensi
-
-## Kontribusi
-
-Jika Anda ingin berkontribusi pada project ini:
-
-1. Fork repository
-2. Buat branch baru (`git checkout -b fitur-baru`)
-3. Commit perubahan (`git commit -am 'Menambah fitur baru'`)
-4. Push ke branch (`git push origin fitur-baru`)
-5. Buat Pull Request
+- `MONGODB_URI`: URI koneksi MongoDB
 
 ## Lisensi
 
-Project ini dilisensikan di bawah [MIT License](LICENSE). 
+[MIT License](LICENSE) 
